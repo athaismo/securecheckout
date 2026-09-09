@@ -1,6 +1,6 @@
-# 🛍️ SecureCheckout — Modelo de Checkout Transparente para E-commerce
+# 🛍️ ModelStore — Checkout Minimalista & Sofisticado
 
-> **Modelo de checkout moderno, ágil e em etapas guiadas, otimizado para alta conversão no mercado brasileiro com suporte a Pix, Cartão de Crédito e Boleto.** Desenvolvido utilizando o ciclo de engenharia orientada a agentes do **Wize Dev Kit**.
+> **Modelo de checkout transparente, ágil e em etapas guiadas com estética minimalista e elegante.** Otimizado para alta conversão no mercado brasileiro com suporte nativo a Pix, Cartão de Crédito e Boleto. Desenvolvido utilizando o ciclo de engenharia orientada a agentes do **Wize Dev Kit**.
 
 [![Status](https://img.shields.io/badge/status-concluído-success.svg)](#)
 [![Stack](https://img.shields.io/badge/stack-HTML5%20%7C%20CSS3%20%7C%20JavaScript-blue.svg)](#)

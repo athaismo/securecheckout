@@ -1,16 +1,16 @@
 /**
- * LOJA MODELO - CHECKOUT INTERACTIVE LOGIC
- * Full-lifecycle client logic with zero external dependencies.
+ * MODELSTORE - MINIMALIST CHECKOUT INTERACTION ENGINE
+ * Zero-runtime modular client architecture.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
   // State
   const state = {
     currentStep: 1,
-    subtotal: 239.80,
-    shippingPrice: 14.90,
-    shippingName: 'Econômico (PAC)',
-    shippingEta: '4 a 6 dias úteis',
+    subtotal: 620.00,
+    shippingPrice: 18.00,
+    shippingName: 'Padrão Segurado',
+    shippingEta: '3 a 5 dias úteis',
     discountPercent: 0,
     couponCode: '',
     paymentMethod: 'pix', // 'pix', 'card', 'boleto'
@@ -151,7 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return digits;
   };
 
-  // Algorithmic CPF Validation
+  // CPF Checksum Validation
   const validateCPF = (cpf) => {
     const clean = cpf.replace(/\D/g, '');
     if (clean.length !== 11 || /^(\d)\1+$/.test(clean)) return false;
@@ -179,7 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (/^(4011|4389|4514|4576|5041|5066|5090|6277|6362|6363)/.test(clean)) return { brand: 'elo', name: 'Elo' };
     if (/^3[47]/.test(clean)) return { brand: 'amex', name: 'Amex' };
     if (/^6(011|5)/.test(clean)) return { brand: 'discover', name: 'Discover' };
-    return { brand: '', name: 'Cartão' };
+    return { brand: '', name: 'ModelStore' };
   };
 
   // ==========================================
@@ -202,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Update stepper nodes & lines
+    // Update stepper
     for (let i = 1; i <= 4; i++) {
       const node = stepNodes[i];
       node.classList.remove('active', 'completed');
@@ -225,16 +225,14 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // Scroll to top of checkout smoothly
-    window.scrollTo({ top: 120, behavior: 'smooth' });
+    window.scrollTo({ top: 80, behavior: 'smooth' });
 
-    // Step-specific initializations
     if (stepNumber === 4) {
       handleOrderConfirmation();
     }
   };
 
-  // Allow clicking on completed steps in progress bar
+  // Stepper Clickable Nodes
   Object.keys(stepNodes).forEach((stepKey) => {
     const node = stepNodes[stepKey];
     node.addEventListener('click', () => {
@@ -253,7 +251,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const discountAmount = state.subtotal * (state.discountPercent / 100);
     const grandTotal = Math.max(0, state.subtotal - discountAmount + state.shippingPrice);
 
-    // Update DOM
     summarySubtotal.textContent = formatCurrency(state.subtotal);
     summaryShipping.textContent = state.shippingPrice === 0 ? 'Grátis' : formatCurrency(state.shippingPrice);
     summaryShippingName.textContent = state.shippingName.split(' ')[0];
@@ -270,7 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const maxFreeInstallments = 6;
     const freeInstallmentValue = grandTotal / maxFreeInstallments;
-    summaryInstallmentsPreview.textContent = `ou até ${maxFreeInstallments}x de ${formatCurrency(freeInstallmentValue)} sem juros`;
+    summaryInstallmentsPreview.textContent = `em até ${maxFreeInstallments}x de ${formatCurrency(freeInstallmentValue)} sem juros`;
 
     // Recalculate card installments select box
     if (cardInstallments) {
@@ -282,10 +279,9 @@ document.addEventListener('DOMContentLoaded', () => {
           const installmentVal = grandTotal / i;
           option.textContent = `${i}x de ${formatCurrency(installmentVal)} sem juros`;
         } else {
-          // 1.99% monthly compound interest
           const rate = 0.0199;
           const installmentVal = (grandTotal * (rate * Math.pow(1 + rate, i))) / (Math.pow(1 + rate, i) - 1);
-          option.textContent = `${i}x de ${formatCurrency(installmentVal)} com juros (1.99% a.m.)`;
+          option.textContent = `${i}x de ${formatCurrency(installmentVal)} com juros`;
         }
         cardInstallments.appendChild(option);
       }
@@ -293,10 +289,9 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // ==========================================
-  // INPUT MASKS & EVENT LISTENERS
+  // INPUT VALIDATIONS & LISTENERS
   // ==========================================
 
-  // Step 1 Inputs
   inputPhone.addEventListener('input', (e) => {
     e.target.value = maskPhone(e.target.value);
     clearError('phone');
@@ -324,41 +319,36 @@ document.addEventListener('DOMContentLoaded', () => {
     if (err) err.textContent = '';
   };
 
-  // Step 1 Validation & Submission
+  // Step 1 Submit
   const formStep1 = document.getElementById('form-step-1');
   formStep1.addEventListener('submit', (e) => {
     e.preventDefault();
     let hasError = false;
 
-    // Validate Name
     if (!inputName.value.trim() || inputName.value.trim().split(' ').length < 2) {
-      setError('name', 'Digite seu nome completo (nome e sobrenome).');
+      setError('name', 'Informe seu nome e sobrenome completo.');
       hasError = true;
     }
 
-    // Validate Email
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailPattern.test(inputEmail.value.trim())) {
-      setError('email', 'Digite um endereço de e-mail válido.');
+      setError('email', 'Informe um endereço de e-mail válido.');
       hasError = true;
     }
 
-    // Validate Phone
     const cleanPhone = inputPhone.value.replace(/\D/g, '');
     if (cleanPhone.length < 10) {
       setError('phone', 'Informe um telefone com DDD válido.');
       hasError = true;
     }
 
-    // Validate CPF
     if (!validateCPF(inputCpf.value)) {
-      setError('cpf', 'CPF inválido. Verifique os números informados.');
+      setError('cpf', 'CPF inválido. Verifique os dígitos informados.');
       hasError = true;
     }
 
     if (hasError) return;
 
-    // Save to state
     state.customer.name = inputName.value.trim();
     state.customer.email = inputEmail.value.trim();
     state.customer.phone = inputPhone.value.trim();
@@ -367,7 +357,7 @@ document.addEventListener('DOMContentLoaded', () => {
     goToStep(2);
   });
 
-  // Step 2: CEP Search via ViaCEP
+  // Step 2: ViaCEP Search
   inputCep.addEventListener('input', async (e) => {
     e.target.value = maskCEP(e.target.value);
     clearError('cep');
@@ -375,7 +365,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const cleanCep = e.target.value.replace(/\D/g, '');
     if (cleanCep.length === 8) {
-      // Trigger ViaCEP API
       cepSpinner.hidden = false;
       errorCep.textContent = '';
       try {
@@ -384,22 +373,20 @@ document.addEventListener('DOMContentLoaded', () => {
         cepSpinner.hidden = true;
 
         if (data.erro) {
-          setError('cep', 'CEP não encontrado. Digite o endereço manualmente.');
+          setError('cep', 'CEP não encontrado. Preencha o endereço manualmente.');
           return;
         }
 
-        // Fill form fields
         inputStreet.value = data.logradouro || '';
         inputNeighborhood.value = data.bairro || '';
         inputCity.value = data.localidade || '';
         inputState.value = data.uf || '';
         successCep.hidden = false;
 
-        // Focus next needed field
         inputNumber.focus();
       } catch (err) {
         cepSpinner.hidden = true;
-        setError('cep', 'Erro ao consultar CEP. Preencha manualmente.');
+        setError('cep', 'Erro na busca de CEP. Preencha os campos manualmente.');
       }
     }
   });
@@ -421,14 +408,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Step 2 Form Submission
+  // Step 2 Submit
   const formStep2 = document.getElementById('form-step-2');
   formStep2.addEventListener('submit', (e) => {
     e.preventDefault();
     let hasError = false;
 
     if (!inputCep.value || inputCep.value.replace(/\D/g, '').length < 8) {
-      setError('cep', 'Informe um CEP válido de 8 dígitos.');
+      setError('cep', 'Informe um CEP válido.');
       hasError = true;
     }
     if (!inputStreet.value.trim()) {
@@ -511,7 +498,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   cardName.addEventListener('input', (e) => {
-    displayCardName.textContent = e.target.value.toUpperCase() || 'NOME COMPLETO';
+    displayCardName.textContent = e.target.value.toUpperCase() || 'HELENA R SILVEIRA';
   });
 
   cardExpiry.addEventListener('input', (e) => {
@@ -519,7 +506,7 @@ document.addEventListener('DOMContentLoaded', () => {
     displayCardExpiry.textContent = e.target.value || 'MM/AA';
   });
 
-  // Finish Order Button
+  // Finish Order
   const btnFinishOrder = document.getElementById('btn-finish-order');
   btnFinishOrder.addEventListener('click', () => {
     if (state.paymentMethod === 'card') {
@@ -531,12 +518,12 @@ document.addEventListener('DOMContentLoaded', () => {
         cardError = true;
       }
       if (!cardName.value.trim()) {
-        document.getElementById('error-card-name').textContent = 'Digite o nome impresso no cartão.';
+        document.getElementById('error-card-name').textContent = 'Digite o nome como impresso no cartão.';
         cardName.classList.add('is-invalid');
         cardError = true;
       }
       if (!cardExpiry.value || cardExpiry.value.length < 5) {
-        document.getElementById('error-card-expiry').textContent = 'Data inválida (MM/AA).';
+        document.getElementById('error-card-expiry').textContent = 'Validade inválida (MM/AA).';
         cardExpiry.classList.add('is-invalid');
         cardError = true;
       }
@@ -553,21 +540,18 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ==========================================
-  // STEP 4: ORDER CONFIRMATION
+  // CONFIRMATION SCREEN
   // ==========================================
 
   const handleOrderConfirmation = () => {
-    // Generate Order Code
-    const randomCode = '#PED-' + Math.floor(100000 + Math.random() * 900000);
+    const randomCode = '#MS-' + Math.floor(10000 + Math.random() * 90000);
     document.getElementById('confirmed-order-number').textContent = randomCode;
     document.getElementById('confirmed-customer-name').textContent = state.customer.name.split(' ')[0] || 'Cliente';
 
-    // Set Shipping Info
     const fullAddress = `${state.customer.street}, ${state.customer.number}${state.customer.complement ? ' (' + state.customer.complement + ')' : ''} - ${state.customer.neighborhood} - ${state.customer.city} / ${state.customer.state} - CEP ${state.customer.cep}`;
     document.getElementById('confirmed-shipping-address').textContent = fullAddress;
     document.getElementById('confirmed-shipping-method').textContent = `${state.shippingName} (${state.shippingEta})`;
 
-    // Display Appropriate Payment Panel
     const confirmedPixBox = document.getElementById('confirmed-pix-box');
     const confirmedCardBox = document.getElementById('confirmed-card-box');
     const confirmedBoletoBox = document.getElementById('confirmed-boleto-box');
@@ -593,11 +577,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // Pix Countdown Timer
+  // Pix Countdown
   const startPixTimer = () => {
     if (state.pixTimerInterval) clearInterval(state.pixTimerInterval);
 
-    let timeLeft = 15 * 60; // 15 minutes in seconds
+    let timeLeft = 15 * 60;
     const countdownEl = document.getElementById('pix-countdown');
 
     state.pixTimerInterval = setInterval(() => {
@@ -622,32 +606,32 @@ document.addEventListener('DOMContentLoaded', () => {
     pixCodeString.select();
     navigator.clipboard.writeText(pixCodeString.value).then(() => {
       toastPix.hidden = false;
-      btnCopyPix.classList.add('btn-success');
+      btnCopyPix.classList.add('btn-dark');
       document.getElementById('copy-pix-label').textContent = 'Copiado!';
       setTimeout(() => {
         toastPix.hidden = true;
-        btnCopyPix.classList.remove('btn-success');
-        document.getElementById('copy-pix-label').textContent = 'Copiar Chave Pix';
+        btnCopyPix.classList.remove('btn-dark');
+        document.getElementById('copy-pix-label').textContent = 'Copiar Chave';
       }, 3500);
     });
   });
 
-  // Copy Boleto Button
+  // Copy Boleto
   const btnCopyBoleto = document.getElementById('btn-copy-boleto');
   const boletoLine = document.getElementById('boleto-line');
   btnCopyBoleto.addEventListener('click', () => {
     boletoLine.select();
     navigator.clipboard.writeText(boletoLine.value).then(() => {
       btnCopyBoleto.textContent = 'Copiado!';
-      btnCopyBoleto.classList.add('btn-success');
+      btnCopyBoleto.classList.add('btn-dark');
       setTimeout(() => {
-        btnCopyBoleto.textContent = 'Copiar Código';
-        btnCopyBoleto.classList.remove('btn-success');
+        btnCopyBoleto.textContent = 'Copiar Linha';
+        btnCopyBoleto.classList.remove('btn-dark');
       }, 3000);
     });
   });
 
-  // Start New Order Button
+  // New Order
   document.getElementById('btn-new-order').addEventListener('click', () => {
     if (state.pixTimerInterval) clearInterval(state.pixTimerInterval);
     formStep1.reset();
@@ -659,10 +643,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateFinancials();
   });
 
-  // ==========================================
-  // COUPON CODE VALIDATION
-  // ==========================================
-
+  // Coupon
   btnApplyCoupon.addEventListener('click', () => {
     const code = inputCoupon.value.trim().toUpperCase();
     couponFeedback.hidden = false;
@@ -670,26 +651,26 @@ document.addEventListener('DOMContentLoaded', () => {
     if (code === 'PRIMEIRACOMPRA') {
       state.discountPercent = 10;
       state.couponCode = code;
-      couponFeedback.textContent = '✓ Cupom PRIMEIRACOMPRA aplicado (10% de desconto)!';
+      couponFeedback.textContent = '✓ Cupom PRIMEIRACOMPRA aplicado (10% OFF)';
       couponFeedback.className = 'coupon-feedback success';
       updateFinancials();
     } else if (!code) {
-      couponFeedback.textContent = 'Digite um cupom antes de aplicar.';
+      couponFeedback.textContent = 'Digite um código antes de aplicar.';
       couponFeedback.className = 'coupon-feedback error';
     } else {
-      couponFeedback.textContent = 'Cupom inválido ou expirado.';
+      couponFeedback.textContent = 'Código inválido ou expirado.';
       couponFeedback.className = 'coupon-feedback error';
     }
   });
 
-  // Mobile Drawer Summary Toggle
+  // Mobile Drawer Toggle
   btnToggleSummary.addEventListener('click', () => {
     const isExpanded = btnToggleSummary.getAttribute('aria-expanded') === 'true';
     btnToggleSummary.setAttribute('aria-expanded', !isExpanded);
     orderSummaryCard.classList.toggle('mobile-open');
     document.getElementById('toggle-summary-text').textContent = !isExpanded 
-      ? 'Ocultar resumo do pedido' 
-      : 'Ver resumo do pedido (2 itens)';
+      ? 'Ocultar resumo da sacola' 
+      : 'Resumo da sacola (2 itens)';
   });
 
   // Initial Calculation
